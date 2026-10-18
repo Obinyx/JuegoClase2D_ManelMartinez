@@ -3,20 +3,20 @@ using UnityEngine.UI;
 
 public class CanvasManager : MonoBehaviour
 {
+    public GameObject pauseCanvas;
+    public Button resumeButton;
+    public GameObject victoryCanvas;
+    public Button retryButton;
+
+    
+    
 
     public static CanvasManager Instance;
-
-    public GameObject pauseCanvas;
-
-    public Button resumeButton;
-
-    public GameObject gameOverCanvas;
-
-    public Button retryButton;
+    
 
     void Awake()
     {
-        if(Instance != null && Instance != this)
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
         }
@@ -24,13 +24,14 @@ public class CanvasManager : MonoBehaviour
         {
             Instance = this;
         }
+
     }
 
     public void ChangeCanvasStatus(GameObject canvas, Button selectedButton)
     {
-        if(pauseCanvas.activeInHierarchy)
+        if (canvas.activeInHierarchy)
         {
-            pauseCanvas.SetActive(false);
+            canvas.SetActive(false);
         }
         else
         {
@@ -38,10 +39,7 @@ public class CanvasManager : MonoBehaviour
             selectedButton.Select();
         }
     }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    
 
-    // Update is called once per frame
     public void ChangeScene(string sceneName)
     {
         SceneLoader.Instance.ChangeScene(sceneName);

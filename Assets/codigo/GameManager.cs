@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int coins;
     [SerializeField] private int stars;
     [SerializeField] private GameObject _gameplayCanvas;
-    [SerializeField] private Image _healthBar;
+    [SerializeField] private Image _healtBar;
     [SerializeField] Text _coinText;
     [SerializeField] Text _starText;
     [SerializeField] private int _levelMaxStarsAmount;
@@ -72,15 +72,15 @@ public class GameManager : MonoBehaviour
 
     public IEnumerator ReduceHealthBar(float actualHealth)
     {
-        float startHealth = _healthBar.fillAmount;
-        _healthBar.fillAmount = startHealth - actualHealth;
+        float startHealth = _healtBar.fillAmount;
+        _healtBar.fillAmount = startHealth - actualHealth;
         yield return new WaitForSecondsRealtime (1f);
     }
 
     public IEnumerator IncreaseHealthBar(float actualHealth)
     {
-        float startHealth = _healthBar.fillAmount;
-        _healthBar.fillAmount = startHealth + actualHealth;
+        float startHealth = _healtBar.fillAmount;
+        _healtBar.fillAmount = startHealth + actualHealth;
         yield return new WaitForSecondsRealtime (1f);
     }
 

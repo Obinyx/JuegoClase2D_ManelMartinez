@@ -69,15 +69,16 @@ private Vector2 _moveInput;
     // Update is called once per frame
     void Update()
     {
-        if(_pauseAction.WasPressedThisFrame())
+        /*if(_pauseAction.WasPressedThisFrame())
         {
             GameManager.Instance.Pause();
         }
 
-        if(GameManager.Instance.IsPaused())
+        if(GameManager.Instance.isPaused())
         {
             return;
         }
+        */
         _moveInput = _moveAction.ReadValue<Vector2>();
 
         if(_moveInput.x < 0)
