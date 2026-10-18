@@ -42,8 +42,8 @@ public class CanvasManager : MonoBehaviour
     
 
     // Update is called once per frame
-    void Update()
+    public void ChangeScene(string sceneName)
     {
-        
+        SceneLoader.Instance.ChangeScene(sceneName);
     }
 }

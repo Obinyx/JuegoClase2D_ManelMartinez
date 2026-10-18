@@ -67,6 +67,6 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "Plataformas2D_ManelMartinez-REAL.slnx",
+    "dotnet.defaultSolution": "JuegoClase2D_ManelMartinez.slnx",
     "dotnet.enableWorkspaceBasedDevelopment": false
 }

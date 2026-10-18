@@ -30,7 +30,7 @@ public class AudioManager : MonoBehaviour
 
     public void PauseSoundtrack()
     {
-        _audioSource.Stop();
+        _audioSource.Pause();
     }
 
 
