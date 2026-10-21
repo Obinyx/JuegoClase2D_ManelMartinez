@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement; // <-- Importante para usar SceneManager
 
 public class CanvasManager : MonoBehaviour
 {
@@ -8,11 +9,7 @@ public class CanvasManager : MonoBehaviour
     public GameObject victoryCanvas;
     public Button retryButton;
 
-    
-    
-
     public static CanvasManager Instance;
-    
 
     void Awake()
     {
@@ -24,7 +21,6 @@ public class CanvasManager : MonoBehaviour
         {
             Instance = this;
         }
-
     }
 
     public void ChangeCanvasStatus(GameObject canvas, Button selectedButton)
@@ -42,6 +38,13 @@ public class CanvasManager : MonoBehaviour
 
     public void ChangeScene(string sceneName)
     {
-        SceneLoader.Instance.ChangeScene(sceneName);
+        Time.timeScale = 1f; // Restaurar la escala de tiempo antes de cambiar de escena
+        SceneManager.LoadScene(sceneName); // Cambio directo y seguro sin depender de SceneLoader
+    }
+
+    // Carga la escena de derrota
+    public void LoadGameOverScene()
+    {
+        ChangeScene("GameOverScene");
     }
 }

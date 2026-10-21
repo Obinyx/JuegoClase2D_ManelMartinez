@@ -43,7 +43,7 @@ public class SceneLoader : MonoBehaviour
 
         while(!asyncLoad.isDone)
         {
-            fakeLoadPercentage += 0.01f;
+            fakeLoadPercentage += 0.1f;
             Mathf.Clamp01(fakeLoadPercentage);
 
             _loadingBar.fillAmount = fakeLoadPercentage;

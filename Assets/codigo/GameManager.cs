@@ -9,18 +9,17 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int coins;
     [SerializeField] private int stars;
     [SerializeField] private GameObject _gameplayCanvas;
-    [SerializeField] private Image _healtBar;
-    [SerializeField] Text _coinText;
-    [SerializeField] Text _starText;
-    [SerializeField] private int _levelMaxStarsAmount;
-    public float  _playerHealth;
-    
+    [SerializeField] private Image _healthBar;
+    [SerializeField] private Text _coinText; // Text Legacy
+    [SerializeField] private Text _starText; // Text Legacy (0/5)
+    [SerializeField] private int _levelMaxStarsAmount = 5;
+    public float _playerHealth;
 
     private bool _isPaused = false;
 
     void Awake()
     {
-        if(Instance != null & Instance != this)
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
         }
@@ -28,68 +27,95 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
         }
+
+        // Seguridad por si el campo se queda en 0 en el Inspector
+        if (_levelMaxStarsAmount <= 0)
+        {
+            _levelMaxStarsAmount = 5;
+        }
     }
 
     void Start()
     {
-        AudioManager.Instance.StartSoundtrack();
-        
+        Time.timeScale = 1f;
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.StartSoundtrack();
+        }
+
+        // Muestra "0/5" en el Text Legacy al iniciar el nivel
+        UpdateStarUI();
     }
-    
+
     public void AddCoin()
     {
         coins += 1;
-        _coinText.text = "x" + coins.ToString();
+        if (_coinText != null)
+        {
+            _coinText.text = coins.ToString();
+        }
     }
 
     public void AddStar()
     {
         stars += 1;
-        _starText.text = stars.ToString() + "/" + _levelMaxStarsAmount.ToString();
-        if (stars == _levelMaxStarsAmount)
+        UpdateStarUI();
+
+        if (stars >= _levelMaxStarsAmount)
         {
             Win();
         }
     }
 
+    private void UpdateStarUI()
+    {
+        if (_starText != null)
+        {
+            _starText.text = stars.ToString() + "/" + _levelMaxStarsAmount.ToString();
+        }
+    }
+
     public void Pause()
     {
-        if(_isPaused)
+        if (_isPaused)
         {
             _isPaused = false;
-            AudioManager.Instance.StartSoundtrack();
+            if (AudioManager.Instance != null) AudioManager.Instance.StartSoundtrack();
             Time.timeScale = 1;
-                        
         }
         else
         {
-            _isPaused = true; 
-            AudioManager.Instance.PauseSoundtrack();
+            _isPaused = true;
+            if (AudioManager.Instance != null) AudioManager.Instance.PauseSoundtrack();
             Time.timeScale = 0;
         }
-        CanvasManager.Instance.ChangeCanvasStatus(CanvasManager.Instance.pauseCanvas, CanvasManager.Instance.resumeButton);   
+
+        if (CanvasManager.Instance != null)
+        {
+            CanvasManager.Instance.ChangeCanvasStatus(CanvasManager.Instance.pauseCanvas, CanvasManager.Instance.resumeButton);
+        }
     }
 
-    public IEnumerator ReduceHealthBar(float actualHealth)
+    // Método para actualizar la barra de vida (recibe un valor entre 0.0 y 1.0)
+    public void UpdateHealthBar(float healthPercentage)
     {
-        float startHealth = _healtBar.fillAmount;
-        _healtBar.fillAmount = startHealth - actualHealth;
-        yield return new WaitForSecondsRealtime (1f);
+        if (_healthBar != null)
+        {
+            _healthBar.fillAmount = healthPercentage;
+        }
     }
-
-    public IEnumerator IncreaseHealthBar(float actualHealth)
-    {
-        float startHealth = _healtBar.fillAmount;
-        _healtBar.fillAmount = startHealth + actualHealth;
-        yield return new WaitForSecondsRealtime (1f);
-    }
-
-
 
     public void Win()
     {
-        AudioManager.Instance.PauseSoundtrack();
-        CanvasManager.Instance.ChangeCanvasStatus(CanvasManager.Instance.victoryCanvas, CanvasManager.Instance.retryButton);
+        Time.timeScale = 0f;
+
+        if (AudioManager.Instance != null) 
+            AudioManager.Instance.PauseSoundtrack();
+
+        if (CanvasManager.Instance != null)
+        {
+            CanvasManager.Instance.ChangeCanvasStatus(CanvasManager.Instance.victoryCanvas, CanvasManager.Instance.retryButton);
+        }
     }
 
     public bool IsPaused()

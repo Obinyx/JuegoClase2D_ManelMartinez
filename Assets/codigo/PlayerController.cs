@@ -1,92 +1,74 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
+using Unity.Cinemachine;
 
 public class PlayerController : MonoBehaviour
 {
-    //int para guardar la vida maxima
-    [SerializeField]private int _maxHealth = 100;
-    [SerializeField]private int _actualHealth;
-    [SerializeField]private float _movementSpeed = 4.5f;
-    [SerializeField]private float _forceJump = 10;
-    
-    
-    /*float decimales = 5,4f;
+    [SerializeField] private float _maxHealth = 100f;
+    [SerializeField] private float _actualHealth;
+    [SerializeField] private float _movementSpeed = 4.5f;
+    [SerializeField] private float _forceJump = 10f;
 
-    bool boleana = true;
-    
-    string texto = "asdasdadasd";*/
+    [SerializeField] private Transform _groundSensor;
+    [SerializeField] private float _sensorSize = 1f;
+    [SerializeField] private LayerMask _groundLayer;
+    [SerializeField] private float _attackDamage = 7f;
+    [SerializeField] private Transform _attackHitBox;
+    [SerializeField] private float _hitBoxRadius = 1f;
 
-[SerializeField] private Transform _groundSensor;
-[SerializeField] private float _sensorSize = 1;
-[SerializeField] private LayerMask _groundLayer;
-[SerializeField] private int _attackDamage = 7;
-[SerializeField] private Transform _attackHitBox;
-[SerializeField] private float _hitBoxRadius = 1f;
+    [SerializeField] private AudioClip _jumpSound;
+    [SerializeField] private AudioClip _attackSound;
 
-[SerializeField] private AudioClip _jumpSound;
-[SerializeField] private AudioClip _attackSound;
+    // Referencia a la imagen roja de pantalla de muerte
+    [SerializeField] private GameObject _deathFlashCanvas;
 
+    private Rigidbody2D _rigidbody2D;
+    private Animator _animator;
+    private AudioSource _playerAudioSource;
+    private SpriteRenderer _spriteRenderer;
+    private Collider2D _playerCollider;
 
-private Rigidbody2D _rigidbody2D;
+    private InputAction _pauseAction;
+    private InputAction _moveAction;
+    private InputAction _attackAction;
+    private InputAction _JumpAction;
 
-private Animator _animator;
-
-private AudioSource _playerAudioSource;
-
-private InputAction _pauseAction;
-private InputAction _moveAction;
-
-private InputAction _attackAction;
-
-private InputAction _JumpAction;
-
-private Vector2 _moveInput;
-
+    private Vector2 _moveInput;
+    private bool _isDead = false;
 
     void Awake()
     {
         _rigidbody2D = GetComponent<Rigidbody2D>();
+        _animator = GetComponent<Animator>();
+        _playerAudioSource = GetComponent<AudioSource>();
+        _spriteRenderer = GetComponent<SpriteRenderer>();
+        _playerCollider = GetComponent<Collider2D>();
 
         _moveAction = InputSystem.actions["Move"];
-
         _JumpAction = InputSystem.actions["Jump"];
-
         _attackAction = InputSystem.actions["Attack"];
-
-        _animator = GetComponent<Animator>();
-
         _pauseAction = InputSystem.actions["Pause"];
-
-        _playerAudioSource = GetComponent<AudioSource>();
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        //_actualHealth = _maxHealth;
+        _actualHealth = _maxHealth;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        /*if(_pauseAction.WasPressedThisFrame())
-        {
-            GameManager.Instance.Pause();
-        }
+        // Si el jugador está muerto, impedimos que se mueva o interactúe
+        if (_isDead) return;
 
-        if(GameManager.Instance.isPaused())
-        {
-            return;
-        }
-        */
         _moveInput = _moveAction.ReadValue<Vector2>();
 
-        if(_moveInput.x < 0)
+        if (_moveInput.x < 0)
         {
             transform.rotation = Quaternion.Euler(0, 180, 0);
             _animator.SetBool("IsRunning", true);
         }
-        else if(_moveInput.x > 0)
+        else if (_moveInput.x > 0)
         {
             transform.rotation = Quaternion.Euler(0, 0, 0);
             _animator.SetBool("IsRunning", true);
@@ -96,13 +78,12 @@ private Vector2 _moveInput;
             _animator.SetBool("IsRunning", false);
         }
 
-
-        if(_JumpAction.WasPressedThisFrame() && IsGrounded())
+        if (_JumpAction.WasPressedThisFrame() && IsGrounded())
         {
             Jump();
         }
 
-        if(_attackAction.WasPressedThisFrame() && IsGrounded())
+        if (_attackAction.WasPressedThisFrame() && IsGrounded())
         {
             Attack();
         }
@@ -111,7 +92,8 @@ private Vector2 _moveInput;
     }
 
     void FixedUpdate()
-    {  
+    {
+        if (_isDead) return;
         _rigidbody2D.linearVelocity = new Vector2(_moveInput.x * _movementSpeed, _rigidbody2D.linearVelocity.y);
     }
 
@@ -124,17 +106,19 @@ private Vector2 _moveInput;
     void Attack()
     {
         _animator.SetTrigger("IsAttacking");
-
         PlaySFX(_attackSound);
 
         Collider2D[] colliders2D = Physics2D.OverlapCircleAll(_attackHitBox.position, _hitBoxRadius);
 
         foreach (Collider2D enemy in colliders2D)
         {
-            if(enemy.gameObject.layer == 7)
+            if (enemy.gameObject.layer == 7)
             {
                 Mimik enemyScript = enemy.GetComponent<Mimik>();
-                enemyScript.TakeDamage(_attackDamage);
+                if (enemyScript != null)
+                {
+                    enemyScript.TakeDamage(_attackDamage);
+                }
             }
         }
     }
@@ -145,49 +129,116 @@ private Vector2 _moveInput;
 
         foreach (Collider2D item in colliders2D)
         {
-            if(item.gameObject.layer == 6)
+            if (item.gameObject.layer == 6)
             {
-            return true;
+                return true;
             }
-
         }
-        return false;        
+        return false;
     }
-    public void HealthUp(int Health)
+
+    public void HealthUp(float Health)
     {
+        if (_isDead) return;
+
         _actualHealth += Health;
 
-        if(_actualHealth >=99)
+        if (_actualHealth > _maxHealth)
         {
             _actualHealth = _maxHealth;
         }
+
+        if (GameManager.Instance != null)
+        {
+            float healthPercentage = _actualHealth / _maxHealth;
+            GameManager.Instance.UpdateHealthBar(healthPercentage);
+        }
     }
+
+    public void TakeDamage(float damage)
+    {
+        if (_isDead) return;
+
+        _actualHealth -= damage;
+
+        if (_actualHealth < 0)
+        {
+            _actualHealth = 0;
+        }
+
+        // Actualiza la barra de vida
+        if (GameManager.Instance != null)
+        {
+            float healthPercentage = _actualHealth / _maxHealth;
+            GameManager.Instance.UpdateHealthBar(healthPercentage);
+        }
+
+        // Si se queda sin vida, iniciamos la secuencia de muerte estilo Mario
+        if (_actualHealth <= 0)
+        {
+            StartCoroutine(DieSequence());
+        }
+    }
+
+    private IEnumerator DieSequence()
+{
+    _isDead = true;
+
+    // 1. Activar la pantalla en rojo suave si está asignada
+    if (_deathFlashCanvas != null)
+    {
+        _deathFlashCanvas.SetActive(true);
+    }
+
+    // 2. CONGELAR LA CÁMARA: Buscamos la cámara de Cinemachine y le quitamos el objetivo (Follow = null)
+    CinemachineCamera vcam = FindObjectOfType<CinemachineCamera>(); 
+    if (vcam != null)
+    {
+        vcam.Follow = null;
+    }
+
+    // 3. EFECTO MARIO: Desactivar colisiones para que traspase objetos y suelos
+    if (_playerCollider != null)
+    {
+        _playerCollider.enabled = false;
+    }
+
+    // Darle el pequeño saltito hacia arriba característico antes de caer
+    if (_rigidbody2D != null)
+    {
+        _rigidbody2D.linearVelocity = new Vector2(0f, 7f);
+    }
+
+    // 4. Esperar 2 segundos mientras el personaje cae fuera de la pantalla estática
+    yield return new WaitForSeconds(2f);
+
+    // 5. Cargar la escena de Game Over
+    if (CanvasManager.Instance != null)
+    {
+        CanvasManager.Instance.LoadGameOverScene();
+    }
+}
 
     void PlaySFX(AudioClip clip)
     {
-        _playerAudioSource.PlayOneShot(clip);
+        if (clip != null && _playerAudioSource != null)
+        {
+            _playerAudioSource.PlayOneShot(clip);
+        }
     }
 
     void OnDrawGizmos()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(_groundSensor.position, _sensorSize);
+        if (_groundSensor != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(_groundSensor.position, _sensorSize);
+        }
 
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(_attackHitBox.position, _hitBoxRadius);
+        if (_attackHitBox != null)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(_attackHitBox.position, _hitBoxRadius);
+        }
     }
-
-    public void TakeDamage(int damage)
-{
-    _actualHealth -= damage;
-
-    // Opcional: Aquí puedes añadir feedback visual o de sonido de que el jugador recibe daño
-
-    if (_actualHealth <= 0)
-    {
-        // Lógica de muerte del jugador (p. ej., reiniciar escena o desactivar movimiento)
-        Destroy(gameObject);
-    }
-}
-
 }

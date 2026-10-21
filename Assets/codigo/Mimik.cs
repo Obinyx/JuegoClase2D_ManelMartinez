@@ -3,11 +3,11 @@ using System.Collections;
 
 public class Mimik : MonoBehaviour
 {
-    [SerializeField] private int _maxHealth = 20;
-    [SerializeField] private int _damageToPlayer = 50;
+    [SerializeField] private float _maxHealth = 20;
+    [SerializeField] private float _damageToPlayer = 50;
     [SerializeField] private float _attackCooldown = 1.5f;
 
-    private int _actualHealth;
+    private float _actualHealth;
     private bool _canDamage = true;
     private Animator _animator; // <--- Referencia al Animator
 
@@ -21,7 +21,7 @@ public class Mimik : MonoBehaviour
         _actualHealth = _maxHealth;
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(float damage)
     {
         _actualHealth -= damage;
 
