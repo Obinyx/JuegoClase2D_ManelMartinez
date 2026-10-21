@@ -19,6 +19,7 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
+        
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -28,7 +29,6 @@ public class GameManager : MonoBehaviour
             Instance = this;
         }
 
-        // Seguridad por si el campo se queda en 0 en el Inspector
         if (_levelMaxStarsAmount <= 0)
         {
             _levelMaxStarsAmount = 5;
@@ -43,7 +43,6 @@ public class GameManager : MonoBehaviour
             AudioManager.Instance.StartSoundtrack();
         }
 
-        // Muestra "0/5" en el Text Legacy al iniciar el nivel
         UpdateStarUI();
     }
 
@@ -96,7 +95,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Método para actualizar la barra de vida (recibe un valor entre 0.0 y 1.0)
     public void UpdateHealthBar(float healthPercentage)
     {
         if (_healthBar != null)
@@ -110,7 +108,9 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 0f;
 
         if (AudioManager.Instance != null) 
-            AudioManager.Instance.PauseSoundtrack();
+        {
+            AudioManager.Instance.PlayVictoryMusic();
+        }
 
         if (CanvasManager.Instance != null)
         {
